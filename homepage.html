@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wardrobe App</title>
+    <link rel="stylesheet" href="app.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+
+
+    <script type="module" >
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
+
+       
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwBy4yLGNzI3mux9i58x3UsRqhY4SGJ_E",
+            authDomain: "codecatalyst-ae857.firebaseapp.com",
+            databaseURL: "https://codecatalyst-ae857-default-rtdb.firebaseio.com",
+            projectId: "codecatalyst-ae857",
+            storageBucket: "codecatalyst-ae857.appspot.com",
+            messagingSenderId: "1078247313225",
+            appId: "1:1078247313225:web:87967235693d2172e45498"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        const userId = 'sampleUserId';  
+        async function addItemWithImage(itemData, imageFile) {
+            try {
+                let imageUrl = "";
+
+                
+                if (imageFile) {
+                    const storageRef = ref(storage, `wardrobe/${imageFile.name}`);
+                    await uploadBytes(storageRef, imageFile);
+                    imageUrl = await getDownloadURL(storageRef);
+                }
+
+                
+                const docRef = await addDoc(collection(db, 'users', userId, 'wardrobe'), {
+                    name: itemData.name,
+                    category: itemData.category,
+                    lastWorn: null,
+                    timesWorn: 0,
+                    image: imageUrl,  
+                    sustainabilityImpact: itemData.sustainabilityImpact || {}
+                });
+
+                console.log('Document written with ID: ', docRef.id);
+            } catch (e) {
+                console.error('Error adding document: ', e);
+            }
+        }
+
+
+        async function fetchWardrobeItems() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'users', userId, 'wardrobe'));
+                const items = [];
+                querySnapshot.forEach((doc) => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+                return items;
+            } catch (e) {
+                console.error('Error fetching wardrobe items: ', e);
+                return [];
+            }
+        }
+
+      
+        async function markItemAsWorn(itemId) {
+            const itemRef = doc(db, 'users', userId, 'wardrobe', itemId);
+            try {
+                await updateDoc(itemRef, {
+                    lastWorn: serverTimestamp(),
+                    timesWorn: increment(1)
+                });
+                console.log('Item updated successfully');
+            } catch (e) {
+                console.error('Error updating document: ', e);
+            }
+        }
+
+      
+        async function deleteItem(itemId) {
+            const itemRef = doc(db, 'users', userId, 'wardrobe', itemId);
+            try {
+                await deleteDoc(itemRef);
+                console.log('Item successfully deleted');
+            } catch (e) {
+                console.error('Error deleting document: ', e);
+            }
+        }
+
+        
+        async function displayWardrobe() {
+            const items = await fetchWardrobeItems();
+            const wardrobeDiv = document.getElementById('wardrobe-items');
+            wardrobeDiv.innerHTML = '';  
+
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('wardrobe-item');
+                itemDiv.innerHTML = `
+                    <h2>${item.name}</h2>
+                    <p>Category: ${item.category}</p>
+                    <p>Last Worn: ${item.lastWorn ? item.lastWorn.toDate() : 'Never'}</p>
+                    <p>Times Worn: ${item.timesWorn}</p>
+                    ${item.image ? `<img src="${item.image}" alt="Item Image">` : ''}
+                    <button class="wear-btn" data-id="${item.id}">Wear</button>
+                    <button class="delete-btn" data-id="${item.id}">Delete</button>
+                `;
+                wardrobeDiv.appendChild(itemDiv);
+            });
+
+            
+            document.querySelectorAll('.wear-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const itemId = e.target.dataset.id;
+                    await markItemAsWorn(itemId);
+                    displayWardrobe();  
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const itemId = e.target.dataset.id;
+                    await deleteItem(itemId);
+                    displayWardrobe(); 
+                });
+            });
+        }
+
+        document.getElementById('addItemBtn').addEventListener('click', async () => {
+            const name = document.getElementById('itemName').value;
+            const category = document.getElementById('itemCategory').value;
+            const imageFile = document.getElementById('itemImage').files[0];  
+
+            if (name && category) {
+                await addItemWithImage({ name, category }, imageFile);
+                displayWardrobe();  
+            }
+        });
+
+        
+        displayWardrobe();
+
+        async function fetchWardrobeDataForChart() {
+        const querySnapshot = await getDocs(collection(db, 'users', userId, 'wardrobe'));
+        const itemNames = [];
+        const timesWornData = [];
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            itemNames.push(data.name);         
+            timesWornData.push(data.timesWorn); 
+        });
+
+        
+        renderUsageChart(itemNames, timesWornData);
+    }
+
+  
+    function renderUsageChart(itemNames, timesWornData) {
+        const ctx = document.getElementById('usageChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',  
+            data: {
+                labels: itemNames, 
+                datasets: [{
+                    label: 'Times Worn',
+                    data: timesWornData,  
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true  
+                    }
+                },
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    
+    fetchWardrobeDataForChart();
+
+
+
+
+    </script>
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <h1>Elysian</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a>DashBoard</a></li>
+           
+        </ul>
+    </nav>
+
+  <div id="charttable"><canvas id="usageChart" ></canvas></div>
+    
+    
+    <div class="mainrole">
+        <h3>Add items</h3>
+        <br>
+        <label for="item name">Item name : </label>
+        <input type="text" id="itemName" placeholder="Item Name" />
+        <label for="category">Category : </label>
+        <input type="text" id="itemCategory" placeholder="Category" />
+
+        <label for="file">File:</label><input type="file" id="itemImage" accept="image/*" />  
+
+        <button id="addItemBtn">Add Item</button>
+    </div>
+    
+
+    
+     <div id="wardon">
+        <h1>Item list</h1>
+        <div id="wardrobe-items"> </div>
+     </div>
+    
+
+    
+</body>
+</html>

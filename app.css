@@ -1,0 +1,124 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+   body { 
+        font-family: Arial, sans-serif; 
+        padding: 20px;
+        /* background-color: #BB9AB1; */
+        background-image: url("p3bg.webp");
+        background-repeat: no-repeat;
+        background-size: cover;
+        
+    
+    }
+    .wardrobe-item { 
+        margin: 20px 0; 
+        border: 1px solid #ccc; 
+        padding: 10px; 
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .wardrobe-item img {
+        max-width: 80px;  
+        max-height: 80px; 
+        object-fit: cover; 
+        margin-right: 10px; 
+        border-radius: 8px; 
+    }
+    .wardrobe-item-content {
+        flex: 1; 
+    }
+    .wardrobe-item-buttons {
+        margin-left: 20px; 
+    }
+    button { 
+        margin-right: 5px; 
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+     nav {
+        background-color: transparent; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        z-index: 10;
+        color: rgb(0, 0, 0);
+    }
+    
+    .nav-links {
+        list-style: none;
+        display: flex;
+    }
+    
+    .nav-links li {
+        margin-left: 20px;
+    }
+    
+    .nav-links a {
+        color: rgb(0, 0, 0);
+        text-decoration: none;
+        font-size: 1.1rem;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+    
+    .nav-links a:hover, .cta-btn {
+        background-color: #49705c;
+    }
+    .cta-btn {
+        background-color: #ffffff;
+        color: #5b9279;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    
+    .cta-btn:hover {
+        background-color: #ddd;
+    }
+    .mainrole{
+        font-size: 22px;
+        margin-top: 150px;
+        background:#faf9f1;
+        backdrop-filter: blur( 11.5px );
+        -webkit-backdrop-filter: blur( 11.5px );
+        color: #000;
+        width:85vw;
+        padding:1.5rem;
+        margin:50px auto;
+        border-radius:10px;
+        box-shadow:0 20px 35px rgba(0,0,1,0.9);
+    }
+    #wardon{
+    background:#faf9f1;
+    backdrop-filter: blur( 11.5px );
+    -webkit-backdrop-filter: blur( 11.5px );
+    color: #000;
+    width:85vw;
+    padding:1.5rem;
+    margin:50px auto;
+    border-radius:10px;
+    box-shadow:0 20px 35px rgba(0, 0, 0, 0.9);
+        
+    }
+    #usageChart{
+    background:#faf9f1;
+    backdrop-filter: blur( 11.5px );
+    -webkit-backdrop-filter: blur( 11.5px );
+    color: black;
+    width:85vw;
+    padding:1.5rem;
+    margin:50px auto;
+    border-radius:10px;
+    box-shadow:0 20px 35px rgba(0, 0, 0, 0.9);
+    }
